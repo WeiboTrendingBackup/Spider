@@ -20,7 +20,7 @@ var MONGODB_URI string
 func loadConfig() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("加载 .env 文件失败")
+		log.Println("加载 .env 文件失败", err.Error())
 	}
 
 	MONGODB_URI = os.Getenv("MONGODB_URI")
@@ -32,7 +32,7 @@ func initDB() {
 
 	ctx = context.Background()
 	var err error
-	dbClient, err = qmgo.NewClient(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017"})
+	dbClient, err = qmgo.NewClient(ctx, &qmgo.Config{Uri: MONGODB_URI})
 	if err != nil {
 		log.Fatalln("连接 Mongo 数据库报错", err.Error())
 	}

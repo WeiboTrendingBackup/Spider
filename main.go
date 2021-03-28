@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/robfig/cron"
-	"gopkg.in/mgo.v2/bson"
 )
 
 type Item struct {
@@ -26,48 +24,36 @@ func init() {
 	initDB()
 }
 
+// TODO
 // 每月一次，自动把mongodb的数据更新到仓库中，年份/月份/1.csv 命名。
 func main() {
-	c := cron.New()
-	c.AddFunc("@every 1m", func() {
-		var now = time.Now().Unix()
-		topics := tredingItem(now)
-		hashTags := TrendingHashtag(now)
+	// c := cron.New()
+	// c.AddFunc("@every 1m", func() {
+	var now = time.Now().Unix()
+	topics := tredingItem(now)
+	hashTags := TrendingHashtag(now)
 
-		fmt.Println(now)
+	fmt.Println(now)
 
-		_, err := timeCol.InsertOne(ctx, &Time{
-			CreatedTime: now,
-		})
-		if err != nil {
-			log.Fatalln("批量插入时间出错：", err.Error())
-		} else {
-			fmt.Printf("批量插入时间成功\n")
-		}
-
-		items := append(topics, hashTags...)
-
-		_, err = recordCol.InsertMany(ctx, items)
-		if err != nil {
-			log.Fatalln("批量插入数据出错：", err.Error())
-		} else {
-			fmt.Printf("批量插入数据成功，热搜榜数据条数：%d，要闻榜数据条数：%d", len(topics), len(hashTags))
-		}
+	_, err := timeCol.InsertOne(ctx, &Time{
+		CreatedTime: now,
 	})
-	c.Start()
-
-	select {}
-	// getData()
-}
-
-func getData() {
-	batch := []Item{}
-	recordCol.Find(ctx, bson.M{"type": 0}).Sort("created_time").All(&batch)
-	for _, item := range batch {
-		fmt.Println(item.CreatedTime, item.Name, item.Index)
+	if err != nil {
+		log.Fatalln("批量插入时间出错：", err.Error())
+	} else {
+		fmt.Printf("批量插入时间成功\n")
 	}
-	// fmt.Print(batch)
 
+	items := append(topics, hashTags...)
+
+	_, err = recordCol.InsertMany(ctx, items)
+	if err != nil {
+		log.Fatalln("批量插入数据出错：", err.Error())
+	} else {
+		fmt.Printf("批量插入数据成功，热搜榜数据条数：%d，要闻榜数据条数：%d", len(topics), len(hashTags))
+	}
+	// })
+	// c.Start()
 }
 
 func tredingItem(now int64) []*Item {
